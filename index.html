@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>VENOM STRIKE | BLEED FAST - DIE HARD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+  }
+
+  body {
+    background: radial-gradient(ellipse at 20% 30%, #0a0202, #000000);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Orbitron', monospace;
+    cursor: none;
+    padding: 20px;
+  }
+
+  #cursor-fang {
+    position: fixed;
+    width: 32px;
+    height: 32px;
+    background: radial-gradient(circle, #ff3311, #770000);
+    border-radius: 40% 60% 50% 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    pointer-events: none;
+    z-index: 999;
+    filter: blur(3px);
+    box-shadow: 0 0 25px #ff3300, 0 0 10px yellow;
+  }
+
+  .game-container {
+    width: 1300px;
+    max-width: 95vw;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    border-radius: 28px;
+    border: 2px solid #ff3311;
+    box-shadow: 0 0 40px rgba(255, 30, 0, 0.6), inset 0 0 30px rgba(0,0,0,0.9);
+    overflow: hidden;
+  }
+
+  .header-stats {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: #0a0301dd;
+    border-bottom: 2px solid #ff4422;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .stat {
+    background: #1a0502;
+    padding: 6px 18px;
+    border-radius: 60px;
+    border-left: 4px solid #ff4422;
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-size: 16px;
+    color: #ffaa77;
+    text-shadow: 0 0 5px #ff2200;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .stat span {
+    color: #ffaa55;
+    font-size: 24px;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+
+  .energy-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1a0502;
+    padding: 4px 20px;
+    border-radius: 40px;
+  }
+
+  .energy-bar-bg {
+    width: 200px;
+    height: 12px;
+    background: #2a0f08;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: inset 0 0 6px black;
+  }
+
+  .energy-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff3311, #ff8844);
+    border-radius: 20px;
+    transition: width 0.08s ease;
+  }
+
+  .arena {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0a0201;
+    background-image: radial-gradient(circle at 25% 40%, #3a1510 1px, transparent 1px);
+    background-size: 30px 30px;
+    overflow: hidden;
+    cursor: crosshair;
+    border-bottom: 3px solid #ff4422;
+  }
+
+  .spider {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    pointer-events: none;
+    transition: left 0.09s cubic-bezier(0.25, 1.2, 0.4, 1), top 0.09s cubic-bezier(0.25, 1.2, 0.4, 1);
+    filter: drop-shadow(0 0 15px #ff4422);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    text-shadow: 0 0 8px red;
+  }
+
+  .prey {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.7));
+    animation: float-prey 0.3s infinite alternate ease;
+  }
+
+  @keyframes float-prey {
+    0% { transform: translate(-50%, -50%) translateY(0px); }
+    100% { transform: translate(-50%, -50%) translateY(-6px); }
+  }
+
+  .bite-explosion {
+    position: absolute;
+    width: 65px;
+    height: 65px;
+    background: radial-gradient(circle, #ffaa44, #ff2200);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: biteKaboom 0.4s cubic-bezier(0.3, 1.2, 0.5, 1) forwards;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: 0 0 40px orange;
+  }
+
+  @keyframes biteKaboom {
+    0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
+  }
+
+  .popup-score {
+    position: absolute;
+    font-size: 32px;
+    font-weight: 900;
+    font-family: 'Orbitron', monospace;
+    color: #ffdd99;
+    text-shadow: 0 0 15px #ff4400, 2px 2px 0 black;
+    pointer-events: none;
+    z-index: 110;
+    animation: flyAway 0.9s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+    white-space: nowrap;
+  }
+
+  @keyframes flyAway {
+    0% { opacity: 1; transform: translateY(0) scale(0.7); }
+    70% { opacity: 1; transform: translateY(-45px) scale(1.1); }
+    100% { opacity: 0; transform: translateY(-80px) scale(1.4); }
+  }
+
+  .combo-text {
+    position: absolute;
+    font-size: 26px;
+    font-weight: bold;
+    color: #ff8866;
+    text-shadow: 0 0 12px red;
+    animation: comboFlash 0.5s ease-out forwards;
+    pointer-events: none;
+    z-index: 120;
+    letter-spacing: 4px;
+  }
+
+  @keyframes comboFlash {
+    0% { opacity: 1; transform: scale(0.5); }
+    100% { opacity: 0; transform: scale(2); }
+  }
+
+  .hunger-pulse {
+    animation: hungerGlow 0.4s infinite alternate;
+  }
+
+  @keyframes hungerGlow {
+    0% { border-color: #ff3311; box-shadow: inset 0 0 5px #ff3311; }
+    100% { border-color: #ff8866; box-shadow: inset 0 0 35px #ff4400; }
+  }
+
+  .overlay-menu {
+    position: absolute;
+    inset: 0;
+    background: #010000ee;
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    gap: 28px;
+    text-align: center;
+  }
+
+  .overlay-menu h1 {
+    font-size: 52px;
+    letter-spacing: 8px;
+    color: #ff5533;
+    text-shadow: 0 0 20px #ff2200;
+  }
+
+  .overlay-menu p {
+    font-size: 17px;
+    max-width: 500px;
+    color: #ffbb88;
+    line-height: 1.8;
+    letter-spacing: 2px;
+  }
+
+  .glow-btn {
+    background: #220a04;
+    border: 2px solid #ff4422;
+    padding: 12px 38px;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: 'Orbitron', monospace;
+    color: #ffaa77;
+    cursor: pointer;
+    transition: 0.2s;
+    letter-spacing: 4px;
+  }
+
+  .glow-btn:hover {
+    background: #ff4422;
+    color: black;
+    box-shadow: 0 0 30px #ff4422;
+    transform: scale(1.05);
+  }
+
+  .ability-bar {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f0b06cc;
+    backdrop-filter: blur(12px);
+    padding: 6px 18px;
+    border-radius: 60px;
+    border: 1px solid #ff6633;
+    display: flex;
+    gap: 18px;
+    z-index: 35;
+    pointer-events: none;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+
+  .ability {
+    background: #2c0f08;
+    padding: 4px 12px;
+    border-radius: 30px;
+    color: #ffaa88;
+  }
+
+  .ability span {
+    color: #ff4422;
+    font-weight: bold;
+  }
+
+  .shake {
+    animation: screenShake 0.08s ease-in-out 0s 2;
+  }
+
+  @keyframes screenShake {
+    0% { transform: translate(1px,1px);}
+    25% { transform: translate(-2px,-1px);}
+    50% { transform: translate(-1px,2px);}
+    100% { transform: translate(0,0);}
+  }
+  
+  .warning-text {
+    color: #ff6644;
+    font-size: 14px;
+    animation: blinkWarning 0.8s infinite;
+  }
+  
+  @keyframes blinkWarning {
+    0%,100% { opacity: 1; text-shadow: 0 0 4px red; }
+    50% { opacity: 0.5; text-shadow: 0 0 12px #ff2200; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor-fang"></div>
+
+<div class="game-container">
+  <div class="header-stats">
+    <div class="stat">💀 LIVES <span id="livesCount">3</span></div>
+    <div class="stat">⚡ KILLS <span id="killCount">0</span></div>
+    <div class="stat">🔥 SCORE <span id="scoreCount">0</span></div>
+    <div class="energy-container">
+      <span>🩸 VENOM <span id="venomWarning" class="warning-text"></span></span>
+      <div class="energy-bar-bg"><div class="energy-fill" id="venomFill"></div></div>
+    </div>
+  </div>
+
+  <div class="arena" id="arena">
+    <div class="spider" id="spider">🕷️</div>
+    <div class="ability-bar">
+      <div class="ability">⚡ CLICK = LEAP & BITE</div>
+      <div class="ability">🔥 COMBO x<span id="comboDisplay">0</span></div>
+      <div class="ability">⚠️ BLEED FAST</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    // ========== FIXED SCOPES & CONFIGURATION ==========
+    const arena = document.getElementById('arena');
+    const spiderDiv = document.getElementById('spider');
+    const venomFill = document.getElementById('venomFill');
+    const livesSpan = document.getElementById('livesCount');
+    const killSpan = document.getElementById('killCount');
+    const scoreSpan = document.getElementById('scoreCount');
+    const comboDisplaySpan = document.getElementById('comboDisplay');
+    const venomWarning = document.getElementById('venomWarning');
+    
+    let W = 0, H = 0;
+    function updateSize() {
+      W = arena.clientWidth;
+      H = arena.clientHeight;
+    }
+    
+    let gameActive = false;
+    let spider = { x: 0.5, y: 0.5 };
+    let venom = 100;
+    let lives = 3;
+    let score = 0;
+    let kills = 0;
+    let combo = 0;
+    let preyList = [];
+    let lastSpawn = 0;
+    let lastKillTime = 0;
+    
+    // ====== CONFIG CONFIGURATIONS ======
+    const BITE_RADIUS = 0.13;
+    const MOVE_COST = 28;
+    const BITE_REWARD_BASE = 28;
+    const DRAIN_PER_SEC = 2.4;
+    const HUNGER_MULTIPLIER = 2.2;
+    const MAX_PREY = 9;
+    const SPAWN_INTERVAL = 1200;
+    const LOW_VENOM_THRESHOLD = 35;
+    
+    const PREY_LIST = [
+      { emoji: "🪰",   baseSpeed: 0.058, points: 38, size: 52, color: "#9b6a1c", glow: "#ffaa44" },
+      { emoji: "🦟",   baseSpeed: 0.092, points: 68, size: 60, color: "#5f8b2f", glow: "#aaff66" },
+      { emoji: "🦗",   baseSpeed: 0.068, points: 48, size: 56, color: "#7a5c2e", glow: "#ccaa55" },
+      { emoji: "🐜",   baseSpeed: 0.052, points: 42, size: 48, color: "#5c3a1e", glow: "#dd8844" },
+      { emoji: "🪳",   baseSpeed: 0.042, points: 62, size: 62, color: "#3d2b1a", glow: "#aa6644" },
+      { emoji: "🦂",   baseSpeed: 0.049, points: 88, size: 64, color: "#8b3c2a", glow: "#ff7744" },
+      { emoji: "🕷️",   baseSpeed: 0.064, points: 82, size: 58, color: "#2a1a10", glow: "#dd3322" }
+    ];
+    
+    function getPrey() {
+      return PREY_LIST[Math.floor(Math.random() * PREY_LIST.length)];
+    }
+    
+    function spawnPrey() {
+      if (!gameActive) return;
+      if (preyList.length >= MAX_PREY) return;
+      const type = getPrey();
+      let x, y, vx, vy;
+      const edge = Math.floor(Math.random() * 4);
+      const sp = type.baseSpeed + (Math.random() * 0.03 - 0.015);
+      if (edge === 0) { x = Math.random(); y = -0.15; vx = (Math.random() - 0.5)*0.03; vy = sp; }
+      else if (edge === 1) { x = 1.15; y = Math.random(); vx = -sp; vy = (Math.random() - 0.5)*0.026; }
+      else if (edge === 2) { x = Math.random(); y = 1.15; vx = (Math.random() - 0.5)*0.03; vy = -sp; }
+      else { x = -0.15; y = Math.random(); vx = sp; vy = (Math.random() - 0.5)*0.026; }
+      
+      let sizeVar = type.size + (Math.random() * 12 - 5);
+      sizeVar = Math.min(78, Math.max(44, sizeVar));
+      
+      // RECYCLING: Initialize DOM elements during spawning phase
+      const preyDiv = document.createElement('div');
+      preyDiv.className = 'prey';
+      preyDiv.textContent = type.emoji;
+      preyDiv.style.width = sizeVar + 'px';
+      preyDiv.style.height = sizeVar + 'px';
+      preyDiv.style.fontSize = (sizeVar * 0.75) + 'px';
+      preyDiv.style.background = `radial-gradient(circle at 30% 35%, ${type.color}, #221100)`;
+      preyDiv.style.borderRadius = '45% 55% 48% 52%';
+      preyDiv.style.border = `2px solid ${type.glow}`;
+      preyDiv.style.boxShadow = `0 0 12px ${type.glow}`;
+      
+      // Track absolute starting positioning
+      preyDiv.style.left = (x * W) + 'px';
+      preyDiv.style.top = (y * H) + 'px';
+      
+      arena.appendChild(preyDiv);
+      
+      preyList.push({
+        x, y, vx, vy,
+        phase: Math.random() * Math.PI * 2,
+        wiggle: 1.4 + Math.random() * 2.0,
+        size: sizeVar,
+        emoji: type.emoji,
+        points: type.points,
+        color: type.color,
+        glow: type.glow,
+        alive: true,
+        el: preyDiv
+      });
+    }
+    
+    function updateBiteAndMovement(delta) {
+      for (let i = 0; i < preyList.length; i++) {
+        const p = preyList[i];
+        if (!p.alive) continue;
+        
+        p.phase += p.wiggle * delta;
+        const driftX = Math.sin(p.phase) * 0.015 * delta;
+        const driftY = Math.cos(p.phase * 1.4) * 0.013 * delta;
+        p.x += (p.vx + driftX) * delta;
+        p.y += (p.vy + driftY) * delta;
+        
+        if (p.x < -0.35 || p.x > 1.35 || p.y < -0.35 || p.y > 1.35) {
+          p.alive = false;
+          if (p.el) p.el.remove();
+          continue;
+        }
+        
+        const dx = p.x - spider.x;
+        const dy = (p.y - spider.y) * (H/W);
+        const dist = Math.hypot(dx, dy);
+        if (dist < BITE_RADIUS) {
+          p.alive = false;
+          if (p.el) p.el.remove();
+          
+          const now = Date.now();
+          if (now - lastKillTime < 1600) {
+            combo++;
+          } else {
+            combo = 1;
+          }
+          lastKillTime = now;
+          comboDisplaySpan.innerText = combo;
+          
+          let reward = p.points;
+          if (combo >= 3) reward = Math.floor(reward * 1.4);
+          if (combo >= 6) reward = Math.floor(reward * 1.8);
+          
+          score += reward;
+          kills++;
+          
+          let venomRestore = BITE_REWARD_BASE + Math.floor(combo * 1.5);
+          venomRestore = Math.min(venomRestore, 45);
+          venom = Math.min(100, venom + venomRestore);
+          
+          killSpan.innerText = kills;
+          scoreSpan.innerText = score;
+          
+          // Max limits capped configuration
+          if (venom >= 100 && lives < 5) {
+            lives = Math.min(5, lives + 1);
+            livesSpan.innerText = lives;
+            venom = 55;
+          }
+          
+          createBiteEffect(p.x * W, p.y * H);
+          createScoreFly(p.x * W, p.y * H, `+${reward}`, combo);
+          if (combo >= 3) createComboText(p.x * W, p.y * H - 30, `${combo}x COMBO!`);
+          
+          arena.classList.add('shake');
+          setTimeout(() => arena.classList.remove('shake'), 120);
+          break;
+        }
+      }
+      
+      // Sweep invalid element caches
+      preyList = preyList.filter(p => {
+        if (!p.alive && p.el) {
+          p.el.remove();
+        }
+        return p.alive;
+      });
+    }
+    
+    function createBiteEffect(px, py) {
+      const boom = document.createElement('div');
+      boom.className = 'bite-explosion';
+      boom.style.left = px + 'px';
+      boom.style.top = py + 'px';
+      arena.appendChild(boom);
+      setTimeout(() => boom.remove(), 450);
+    }
+    
+    function createScoreFly(x, y, text, comboLevel) {
+      const pop = document.createElement('div');
+      pop.className = 'popup-score';
+      pop.innerText = text;
+      pop.style.left = x + 'px';
+      pop.style.top = y + 'px';
+      if (comboLevel >= 3) pop.style.color = '#ffaa66';
+      if (comboLevel >= 6) pop.style.color = '#ffdd99';
+      arena.appendChild(pop);
+      setTimeout(() => pop.remove(), 900);
+    }
+    
+    function createComboText(x, y, text) {
+      const comboDiv = document.createElement('div');
+      comboDiv.className = 'combo-text';
+      comboDiv.innerText = text;
+      comboDiv.style.left = x + 'px';
+      comboDiv.style.top = y + 'px';
+      arena.appendChild(comboDiv);
+      setTimeout(() => comboDiv.remove(), 600);
+    }
+    
+    function updateVenomAndHunger(delta) {
+      if (!gameActive) return;
+      let drain = DRAIN_PER_SEC * delta;
+      if (venom < LOW_VENOM_THRESHOLD) {
+        drain *= HUNGER_MULTIPLIER;
+        venomWarning.innerText = "❗ CRITICAL ❗";
+        venomWarning.style.animation = "blinkWarning 0.4s infinite";
+      } else if (venom < 50) {
+        venomWarning.innerText = "⚠️ LOW ⚠️";
+      } else {
+        venomWarning.innerText = "";
+      }
+      
+      venom = Math.max(0, venom - drain);
+      const percent = venom / 100;
+      venomFill.style.width = (percent * 100) + '%';
+      
+      if (percent < 0.25) {
+        venomFill.style.background = "#ff1100";
+        arena.classList.add('hunger-pulse');
+      } else {
+        venomFill.style.background = "linear-gradient(90deg, #ff4422, #ffaa33)";
+        arena.classList.remove('hunger-pulse');
+      }
+      
+      // FIXED LIVES MECHANIC: Bleed state triggers system mitigation steps
+      if (venom <= 0) {
+        lives--;
+        livesSpan.innerText = lives;
+        if (lives <= 0) {
+          gameOver();
+        } else {
+          // Rescue state reset trigger
+          venom = 60;
+          createComboText(spider.x * W, spider.y * H - 35, "💔 LIVES DECREMENTED");
+          arena.classList.add('shake');
+          setTimeout(() => arena.classList.remove('shake'), 200);
+        }
+      }
+    }
+    
+    function spiderJump(newX, newY) {
+      if (!gameActive) return;
+      if (venom < MOVE_COST) {
+        venom = Math.max(0, venom - 14);
+        if (venom <= 0) {
+          lives--;
+          livesSpan.innerText = lives;
+          if (lives <= 0) {
+            gameOver();
+            return;
+          } else {
+            venom = 50;
+            createComboText(spider.x * W, spider.y * H - 35, "⚠️ CRITICAL DROP!");
+          }
+        }
+      } else {
+        venom -= MOVE_COST;
+      }
+      
+      spider.x = Math.min(0.98, Math.max(0.02, newX));
+      spider.y = Math.min(0.98, Math.max(0.02, newY));
+      spiderDiv.style.left = (spider.x * W) + 'px';
+      spiderDiv.style.top = (spider.y * H) + 'px';
+    }
+    
+    // RECYCLED DOM ANIMATOR: Modifies coordinates of existing elements only
+    function renderPrey() {
+      for (let i = 0; i < preyList.length; i++) {
+        const p = preyList[i];
+        if (p.alive && p.el) {
+          p.el.style.left = (p.x * W) + 'px';
+          p.el.style.top = (p.y * H) + 'px';
+        }
+      }
+    }
+    
+    function manageSpawn(now) {
+      if (!gameActive) return;
+      if (now - lastSpawn > SPAWN_INTERVAL && preyList.length < MAX_PREY) {
+        spawnPrey();
+        lastSpawn = now;
+        if (preyList.length < 2 && Math.random() < 0.5) spawnPrey();
+      }
+    }
+    
+    let lastFrameMs = 0;
+    function gameLoop(ms) {
+      if (!gameActive) return;
+      if (!lastFrameMs) { lastFrameMs = ms; requestAnimationFrame(gameLoop); return; }
+      let dt = Math.min(0.033, (ms - lastFrameMs) / 1000);
+      if (dt <= 0) { lastFrameMs = ms; requestAnimationFrame(gameLoop); return; }
+      lastFrameMs = ms;
+      
+      updateVenomAndHunger(dt);
+      updateBiteAndMovement(dt);
+      renderPrey();
+      manageSpawn(ms);
+      
+      requestAnimationFrame(gameLoop);
+    }
+    
+    function gameOver() {
+      if (!gameActive) return;
+      gameActive = false;
+      arena.classList.remove('hunger-pulse');
+      
+      // Cleanup all lingering prey elements
+      preyList.forEach(p => { if (p.el) p.el.remove(); });
+      preyList = [];
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay-menu';
+      overlay.innerHTML = `
+        <h1>💀 YOU BLEED OUT 💀</h1>
+        <p>KILLS: ${kills} &nbsp;|&nbsp; SCORE: ${score}<br>MAX COMBO: ${combo}x<br><span style="color:#ff8866;">Venom drained too fast... you couldn't sustain.</span></p>
+        <button class="glow-btn" id="restartFinalBtn">HUNT AGAIN (DIE FASTER)</button>
+      `;
+      arena.appendChild(overlay);
+      const btn = overlay.querySelector('#restartFinalBtn');
+      btn.addEventListener('click', () => {
+        overlay.remove();
+        fullRestart();
+      });
+    }
+    
+    function fullRestart() {
+      // Direct element purging safety step
+      const oldPrey = arena.querySelectorAll('.prey');
+      oldPrey.forEach(el => el.remove());
+      
+      preyList = [];
+      gameActive = true;
+      venom = 100;
+      lives = 3;
+      score = 0;
+      kills = 0;
+      combo = 0;
+      spider = { x: 0.5, y: 0.5 };
+      lastSpawn = performance.now();
+      lastKillTime = 0;
+      comboDisplaySpan.innerText = "0";
+      livesSpan.innerText = "3";
+      killSpan.innerText = "0";
+      scoreSpan.innerText = "0";
+      venomFill.style.width = "100%";
+      spiderDiv.style.left = (spider.x * W) + 'px';
+      spiderDiv.style.top = (spider.y * H) + 'px';
+      arena.classList.remove('hunger-pulse');
+      venomWarning.innerText = "";
+      
+      for(let i=0; i<3; i++) {
+        setTimeout(() => { if (gameActive) spawnPrey(); }, i * 120);
+      }
+      lastFrameMs = performance.now();
+      requestAnimationFrame(gameLoop);
+    }
+    
+    arena.addEventListener('click', (e) => {
+      if (!gameActive) return;
+      const rect = arena.getBoundingClientRect();
+      let cx = (e.clientX - rect.left) / W;
+      let cy = (e.clientY - rect.top) / H;
+      cx = Math.min(0.97, Math.max(0.03, cx));
+      cy = Math.min(0.97, Math.max(0.03, cy));
+      spiderJump(cx, cy);
+      spiderDiv.style.transform = "scale(1.25)";
+      setTimeout(() => { if (spiderDiv) spiderDiv.style.transform = ""; }, 100);
+    });
+    
+    // Smooth zero-lag mouse coordinate pointer updates
+    document.addEventListener('mousemove', (e) => {
+      const fang = document.getElementById('cursor-fang');
+      fang.style.left = e.clientX + 'px';
+      fang.style.top = e.clientY + 'px';
+    });
+    
+    window.addEventListener('resize', () => {
+      updateSize();
+      if (gameActive) {
+        spiderDiv.style.left = (spider.x * W) + 'px';
+        spiderDiv.style.top = (spider.y * H) + 'px';
+        renderPrey();
+      }
+    });
+    
+    function initGame() {
+      updateSize();
+      gameActive = true;
+      venom = 100;
+      lives = 3;
+      score = 0;
+      kills = 0;
+      combo = 0;
+      preyList = [];
+      spider = { x: 0.5, y: 0.5 };
+      lastSpawn = performance.now();
+      comboDisplaySpan.innerText = "0";
+      livesSpan.innerText = "3";
+      killSpan.innerText = "0";
+      scoreSpan.innerText = "0";
+      venomFill.style.width = "100%";
+      spiderDiv.style.left = (spider.x * W) + 'px';
+      spiderDiv.style.top = (spider.y * H) + 'px';
+      for(let i=0; i<3; i++) spawnPrey();
+      lastFrameMs = performance.now();
+      requestAnimationFrame(gameLoop);
+    }
+    
+    const startOverlay = document.createElement('div');
+    startOverlay.className = 'overlay-menu';
+    startOverlay.innerHTML = `
+      <h1>🩸 VENOM STRIKE 🩸</h1>
+      <p>💀 YOU DIE FAST. VERY FAST. 💀<br>
+      VENOM DRAINS RAPIDLY. EACH MOVE COSTS HEAVY.<br>
+      BITE TO SURVIVE, BUT COMBOS ARE RISKY.<br>
+      ONE WRONG JUMP = DEATH.<br>
+      <span style="color:#ff6644;">CAN YOU LAST 60 SECONDS?</span></p>
+      <button class="glow-btn" id="startBtn">BEGIN AGONY</button>
+    `;
+    arena.appendChild(startOverlay);
+    const startBtn = startOverlay.querySelector('#startBtn');
+    startBtn.addEventListener('click', () => {
+      startOverlay.remove();
+      initGame();
+    });
+    
+  })();
+</script>
+</body>
+</html>
