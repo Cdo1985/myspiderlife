@@ -1,5 +1,7 @@
 # myspiderlife
 
+https://cdo1985.github.io/myspiderlife/
+
 A simple web project featuring a single HTML page, `index.html`. This repository serves as the foundation for a lightweight website or web application.
 
 ## Project Overview
